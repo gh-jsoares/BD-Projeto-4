@@ -1,1 +1,3 @@
-select tipo_anomalia, lingua, dia_da_semana, count(*) from f_anomalia natural join d_lingua natural join d_tempo group by rollup(tipo_anomalia, lingua, dia_da_semana);
+SELECT tipo_anomalia, lingua, dia_da_semana, COUNT(*) 
+FROM f_anomalia NATURAL JOIN d_lingua NATURAL JOIN d_tempo 
+GROUP BY rollup(tipo_anomalia, lingua, dia_da_semana);
