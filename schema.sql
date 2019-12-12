@@ -43,7 +43,7 @@ CREATE TABLE anomalia (
 
 CREATE TABLE anomalia_traducao (
 	id INT NOT NULL PRIMARY KEY,
-	zona2 VARCHAR(255) NOT NULL,
+	zona2 BOX NOT NULL,
 	lingua2 VARCHAR(255) NOT NULL,
 	FOREIGN KEY (id) REFERENCES anomalia(id) ON DELETE CASCADE
 );
@@ -146,7 +146,7 @@ CREATE TABLE f_anomalia (
 
 CREATE OR REPLACE FUNCTION check_anomalia() RETURNS TRIGGER AS $$
 BEGIN
-	IF (box (NEW.zona2) && (box ((SELECT zona FROM anomalia WHERE id = NEW.id)))) THEN
+	IF (NEW.zona2 && (SELECT zona FROM anomalia WHERE id = NEW.id)) THEN
 		RAISE EXCEPTION 'A zona da anomalia_tradução não se pode sobrepor à zona da anomalia correspondente';
 
 	END IF;
