@@ -33,7 +33,7 @@ CREATE TABLE item (
 
 CREATE TABLE anomalia (
 	id SERIAL PRIMARY KEY,
-	zona VARCHAR(255) NOT NULL,
+	zona BOX NOT NULL,
 	imagem VARCHAR(255) NOT NULL,
 	lingua VARCHAR(255) NOT NULL,
 	ts TIMESTAMP NOT NULL DEFAULT NOW(),
@@ -144,15 +144,13 @@ CREATE TABLE f_anomalia (
 
 --- RI-1
 
-CREATE OR REPLACE FUNCTION check_anomalia()
-RETURNS TRIGGER AS $$
+CREATE OR REPLACE FUNCTION check_anomalia() RETURNS TRIGGER AS $$
 BEGIN
+	IF (box (NEW.zona2) && (box ((SELECT zona FROM anomalia WHERE id = NEW.id)))) THEN
+		RAISE EXCEPTION 'A zona da anomalia_tradução não se pode sobrepor à zona da anomalia correspondente';
 
-  IF (NEW.zona2) IN (SELECT zona FROM anomalia WHERE zona = NEW.zona2 AND id = NEW.id) THEN
-  	RAISE EXCEPTION 'A zona da anomalia_tradução não se pode sobrepor à zona da anomalia correspondente';
-
-  END IF;
-  RETURN NEW;
+	END IF;
+	RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
@@ -161,8 +159,7 @@ FOR EACH ROW EXECUTE PROCEDURE check_anomalia();
 
 --- RI-4
 
-CREATE OR REPLACE FUNCTION check_email_utilizador()
-RETURNS TRIGGER AS $$
+CREATE OR REPLACE FUNCTION check_email_utilizador() RETURNS TRIGGER AS $$
 BEGIN
 
   IF (NEW.email) NOT IN (SELECT email FROM utilizador_regular UNION SELECT email FROM utilizador_qualificado WHERE email = NEW.email) THEN
@@ -179,8 +176,7 @@ FOR EACH ROW EXECUTE PROCEDURE check_email_utilizador();
 
 --- RI-5
 
-CREATE OR REPLACE FUNCTION check_utilizador_regular()
-RETURNS TRIGGER AS $$
+CREATE OR REPLACE FUNCTION check_utilizador_regular() RETURNS TRIGGER AS $$
 BEGIN
 
   IF (NEW.email) IN (SELECT email FROM utilizador_regular WHERE email = NEW.email) THEN
@@ -196,8 +192,7 @@ FOR EACH ROW EXECUTE PROCEDURE check_utilizador_regular();
 
 --- RI-6
 
-CREATE OR REPLACE FUNCTION check_utilizador_qualificado()
-RETURNS TRIGGER AS $$
+CREATE OR REPLACE FUNCTION check_utilizador_qualificado() RETURNS TRIGGER AS $$
 BEGIN
 
   IF (NEW.email) IN (SELECT email FROM utilizador_qualificado WHERE email = NEW.email) THEN
